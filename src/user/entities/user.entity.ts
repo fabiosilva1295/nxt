@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
-import { AddressObject } from 'src/common/dto/address/address.dto';
+import { Address } from 'src/common/entities/address.entity';
 import { PhonesObject } from 'src/common/models/phones/phones.model';
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 @Entity()
 export class User  {
   @PrimaryGeneratedColumn('uuid')
@@ -25,11 +25,13 @@ export class User  {
   @Column()
   document_type: string;
 
-  @Column('jsonb')
-  adreess: AddressObject;
+  @OneToOne(() => Address)
+  @JoinColumn()
+  address: Address;
 
   @Column('jsonb')
   pones: PhonesObject;
+
 
   @Column({ type: 'date' })
   birthdate: Date;
