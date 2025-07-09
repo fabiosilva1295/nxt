@@ -4,8 +4,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { DatabaseModule } from './database/database.module';
-import { UserModule } from './user/user.module';
 import { PaymentModule } from './payment/payment.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [

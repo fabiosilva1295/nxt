@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UnauthorizedError } from 'src/auth/errors/unauthorized.error';
@@ -12,18 +13,20 @@ export class AuthService {
 
   constructor(
     private readonly userService: UserService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService
   ){}
 
   login(user: User): JwtToken {
     const payload: UserPayload = {
       sub: user.id, 
       email: user.email, 
-      name: user.name
     }
     
     return {
-      accessToken: this.jwtService.sign(payload)
+      access_token: this.jwtService.sign(payload),
+      token_type: "bearer",
+      expires_in: this.configService.get('JWT_EXPIRATION_TIME') || ''
     }
   }
 
