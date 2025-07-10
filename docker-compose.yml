@@ -1,34 +1,22 @@
-version: '3.8'
-
 services:
   
-  app:
+  app-payment:
+    container_name: app-payment
     build:
       context: .
       dockerfile: Dockerfile
+    image: nxttelessaude/payment:latest
+    env_file:
+      - .env
     ports:
-      - "3000:3000" 
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    command: npm run start:dev 
-    environment:
-      NODE_ENV: development
-      JWT_SECRET: naruto500
-      JWT_EXPIRATION_TIME: 3600s
-      PAGARME_API_KEY: sk_test_MavVAXbhWuLJjJYw
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USERNAME: usr_payment
-      DATABASE_TYPE: postgres
-      DATABASE_PASSWORD: pass_payment
-      DATABASE_NAME: db_payment
-      DATABASE_SYNCHRONIZE: true
+      - "3000:3000"
+    depends_on:
+      - pg-payment
     networks:
       - db
   
-  postgres:
-    container_name: postgres
+  pg-payment:
+    container_name: pg-payment
     image: postgres:16
     restart: always
     environment:

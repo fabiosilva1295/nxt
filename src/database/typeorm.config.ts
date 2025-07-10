@@ -11,5 +11,5 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   password: configService.get('DATABASE_PASSWORD'),
   database: configService.get('DATABASE_NAME'),
   entities,
-  synchronize: true, // ⚠️ usar apenas em desenvolvimento
+  synchronize: configService.get('DATABASE_SYNCHRONIZE'), 
 };

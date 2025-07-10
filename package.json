@@ -1,8 +1,8 @@
 {
   "name": "payment",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "1.0.1",
+  "description": "API Gatwey de pagamento para telessaude com drogaria são paulo",
+  "author": "nxt",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
