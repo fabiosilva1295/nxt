@@ -6,6 +6,7 @@ import { getDDD, getNumberWithoutDDD } from 'src/common/models/ti-saude/phones.m
 import { TiSaudeRequestBody } from 'src/common/models/ti-saude/ti-saude-request.model';
 import { getHoursDiffBetweenDates } from 'src/common/utils/date.util';
 import { converterParaCentavos } from 'src/common/utils/payment.util';
+import { OrderPaymentResponse } from '../models/order.model';
 
 @Injectable()
 export class PaymentService {
@@ -19,14 +20,14 @@ export class PaymentService {
     this.apiKey = this.configService.get<string>('PAGARME_API_KEY') || '';
   }
 
-  async createCheckoutPro(data: TiSaudeRequestBody) {
+  async createCheckoutPro(data: TiSaudeRequestBody):  Promise<OrderPaymentResponse>{
     const headers = this.buildHeaders();
-    const payload = this.buildPayload(data);
+    const payload = this.buildPayloadToCreateLink(data);
 
     const response$ = this.httpService.post(this.pagarmeApi, payload, { headers });
     const response = await firstValueFrom(response$);
 
-    return response.data;
+    return response.data as OrderPaymentResponse;
   }
 
   private buildHeaders(): Record<string, string> {
@@ -37,7 +38,7 @@ export class PaymentService {
     };
   }
 
-  private buildPayload(data: TiSaudeRequestBody): Record<string, any> {
+  private buildPayloadToCreateLink(data: TiSaudeRequestBody): Record<string, any> {
      
     const payload =  {
       is_building: false,
@@ -100,6 +101,16 @@ export class PaymentService {
     return payload;
   }
 
+  async getOrderById(uuid: string){
+
+    const url = `https://api.pagar.me/core/v5/charges/${uuid}/capture`;
+
+    const headers = this.buildHeaders();
+    const response$ = this.httpService.get(url, { headers });
+    const response = await firstValueFrom(response$);
+
+    return response.data;
+  }
 
 }
 
