@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { CreateTiSaudeDto } from './dto/create-ti-saude.dto';
-import { OrderResponse } from './models/order.model';
+import { CreateTiSaudeOrderRequest } from './models/order-request';
+import { CreateTiSaudeOrderResponse } from './models/order-response';
 import { TiSaudeService } from './services/ti-saude.service';
 
 @Controller('ti-saude')
@@ -8,7 +8,7 @@ export class TiSaudeController {
   constructor(private readonly tiSaudeService: TiSaudeService) {}
 
   @Post('orders')
-  async create(@Body() createTiSaudeDto: CreateTiSaudeDto): Promise<OrderResponse>{
+  async create(@Body() createTiSaudeDto: CreateTiSaudeOrderRequest): Promise<CreateTiSaudeOrderResponse>{
     return await this.tiSaudeService.getOrder(createTiSaudeDto);
   }
 

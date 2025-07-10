@@ -2,15 +2,13 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
-import { getDDD, getNumberWithoutDDD } from 'src/common/models/ti-saude/phones.model';
-import { TiSaudeRequestBody } from 'src/common/models/ti-saude/ti-saude-request.model';
-import { getHoursDiffBetweenDates } from 'src/common/utils/date.util';
-import { converterParaCentavos } from 'src/common/utils/payment.util';
-import { OrderPaymentResponse } from '../models/order.model';
+import { pupulatePayloadData } from 'src/common/utils/payload-order';
+import { CreateTiSaudeOrderRequest } from '../models/order-request';
+import { PagarmeOrderCheckoutResponse } from '../models/order-response';
 
 @Injectable()
 export class PaymentService {
-  private readonly pagarmeApi: string = 'https://sdx-api.pagar.me/core/v5/paymentlinks';
+  private readonly pagarmeApi: string = 'https://api.pagar.me/core/v5/orders';
   private apiKey: string;
 
   constructor(
@@ -20,14 +18,14 @@ export class PaymentService {
     this.apiKey = this.configService.get<string>('PAGARME_API_KEY') || '';
   }
 
-  async createCheckoutPro(data: TiSaudeRequestBody):  Promise<OrderPaymentResponse>{
+  async createCheckoutPro(data: CreateTiSaudeOrderRequest):  Promise<PagarmeOrderCheckoutResponse>{
     const headers = this.buildHeaders();
     const payload = this.buildPayloadToCreateLink(data);
 
     const response$ = this.httpService.post(this.pagarmeApi, payload, { headers });
     const response = await firstValueFrom(response$);
 
-    return response.data as OrderPaymentResponse;
+    return response.data as PagarmeOrderCheckoutResponse;
   }
 
   private buildHeaders(): Record<string, string> {
@@ -38,78 +36,18 @@ export class PaymentService {
     };
   }
 
-  private buildPayloadToCreateLink(data: TiSaudeRequestBody): Record<string, any> {
-     
-    const payload =  {
-      is_building: false,
-      customer_settings: {
-        customer: {
-          name: data.customer.name,
-          email: data.customer.email,
-          code: data.number,
-          document: data.customer.document,
-          document_type: 'CPF',
-          type: 'individual',
-          address: {
-            country: 'BR',
-            zip_code: data.customer.postalcode,
-            city: data.customer.city,
-            state: data.customer.uf,
-            line_1: `${data.customer.number}, ${data.customer.address}, ${data.customer.district}`
-          },
-          phones: {
-            mobile_phone: {
-              country_code: '55',
-              area_code: getDDD(data.customer.phone),
-              number: getNumberWithoutDDD(data.customer.phone)
-            }
-          },
-        }
-      },
-      payment_settings: {
-        pix_settings: {
-          expires_in: getHoursDiffBetweenDates(new Date().toString(), new Date(data.due_date_at).toISOString())
-        },
-        credit_card_settings: {
-          operation_type: 'auth_and_capture',
-          installments: [
-            {
-              number: 1,
-              total: converterParaCentavos(data.amount),
-            },
-            {
-              number: 2,
-              total: converterParaCentavos(data.amount),
-            },
-          ],
-        },
-        accepted_payment_methods: ['credit_card', "pix"],
-      },
-      cart_settings: {
-        items: [
-          {
-            amount: converterParaCentavos(data.amount),
-            name: 'Atendimento Telemedicina - NXT ',
-            default_quantity: 1,
-          },
-        ],
-      },
-      name: 'Banner N12345',
-      type: 'order',
-    };
-
+  private buildPayloadToCreateLink(data: CreateTiSaudeOrderRequest): Record<string, any> {
+    const payload =  pupulatePayloadData(data);
     return payload;
   }
 
   async getOrderById(uuid: string){
 
-    const url = `https://api.pagar.me/core/v5/charges/${uuid}/capture`;
-
     const headers = this.buildHeaders();
-    const response$ = this.httpService.get(url, { headers });
+    const response$ = this.httpService.get(`${this.pagarmeApi}/${uuid}`, { headers });
     const response = await firstValueFrom(response$);
 
-    return response.data;
+    return response.data as PagarmeOrderCheckoutResponse;
   }
 
 }
